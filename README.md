@@ -1,5 +1,5 @@
-<<<<<<< HEAD
-# reva
+
+# Reva
 Backend for a hotel system (ERM).
 =======
 <p align="center">
