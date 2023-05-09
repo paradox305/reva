@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  USER_UUID        String     @id @default(uuid())
+  USER_EMAIL       String     @unique
+  USER_NAME        String     @db.VarChar(255)
+  USER_CREATION_AT DateTime   @default(now())
+  USER_UPDATED_AT  DateTime   @updatedAt
+  employee         employee[]
+  customer         customer[]
+  company          company[]
+}
+
+model company {
+  COMPANY_UUID        String     @id @default(uuid())
+  COMPANY_NAME        String     @db.VarChar(100)
+  COMPANY_ADDRESS     String     @db.VarChar(400)
+  COMPANY_DESCRIPTION String     @db.VarChar(400)
+  user                user?      @relation(fields: [USER_UUID], references: [USER_UUID])
+  USER_UUID           String?
+  employee            employee[]
+  table               table[]
+  menu                menu[]
+  session             session[]
+  customer            customer[]
+}
+
+model employee {
+  EMPLOYEE_UUID            String    @id @default(uuid())
+  EMPLOYEE_NAME            String    @db.VarChar(100)
+  EMPLOYEE_TYPE            String    @db.VarChar(100)
+  EMPLOYEE_SALARY          Int
+  EMPLOYEE_JOINING_DATE    Int
+  EMPLOYEE_TERMINATED_DATE Int       @default(0)
+  USER_UUID                String?
+  user                     user?     @relation(fields: [USER_UUID], references: [USER_UUID], onDelete: Cascade)
+  company                  company?  @relation(fields: [COMPANY_UUID], references: [COMPANY_UUID])
+  COMPANY_UUID             String?
+  session                  session[]
+}
+
+model customer {
+  CUSTOMER_UUID String   @id @default(uuid())
+  USER_UUID     String
+  user          user?    @relation(fields: [USER_UUID], references: [USER_UUID], onDelete: Cascade)
+  company       company? @relation(fields: [COMPANY_UUID], references: [COMPANY_UUID])
+  COMPANY_UUID  String?
+}
+
+model table {
+  TABLE_UUID        String    @id @default(uuid())
+  TABLE_NAME        String    @db.VarChar(100)
+  TABLE_CHAIRS      Int
+  TABLE_STATUS      String    @db.VarChar(100)
+  TABLE_PRICE       Int
+  TABLE_CREATION_AT DateTime  @default(now())
+  TABLE_UPDATED_AT  DateTime  @updatedAt
+  company           company?  @relation(fields: [COMPANY_UUID], references: [COMPANY_UUID])
+  COMPANY_UUID      String?
+  order             order[]
+  session           session[]
+}
+
+model menu {
+  MENU_UUID        String   @id @default(uuid())
+  CATEGORY         String   @db.VarChar(100)
+  DISH             String   @db.VarChar(255)
+  QUANTITY         String
+  PRICE            Int
+  MENU_CREATION_AT DateTime @default(now())
+  MENU_UPDATED_AT  DateTime @updatedAt
+  company          company? @relation(fields: [COMPANY_UUID], references: [COMPANY_UUID])
+  COMPANY_UUID     String?
+  order            order[]
+}
+
+model order {
+  ORDER_UUID        String   @id @default(uuid())
+  menu              menu?    @relation(fields: [MENU_UUID], references: [MENU_UUID])
+  MENU_UUID         String?
+  STATUS            String   @db.VarChar(100)
+  INSTRUCTIONS      String   @db.VarChar(255)
+  FEEDBACK          String   @db.VarChar(255)
+  table             table?   @relation(fields: [TABLE_UUID], references: [TABLE_UUID])
+  TABLE_UUID        String?
+  session           session? @relation(fields: [SESSION_UUID], references: [SESSION_UUID])
+  SESSION_UUID      String?
+  ORDER_CREATION_AT DateTime @default(now())
+  ORDER_UPDATED_AT  DateTime @updatedAt
+}
+
+model bill {
+  BILL_UUID String    @id @default(uuid())
+  STATUS    String    @db.VarChar()
+  AMOUNT    Int
+  session   session[]
+}
+
+model session {
+  SESSION_UUID   String    @id @default(uuid())
+  table          table?    @relation(fields: [TABLE_UUID], references: [TABLE_UUID])
+  TABLE_UUID     String?
+  bill           bill?     @relation(fields: [BILL_UUID], references: [BILL_UUID])
+  BILL_UUID      String?
+  STATUS         Boolean   @default(false)
+  order          order[]
+  company        company?  @relation(fields: [COMPANY_UUID], references: [COMPANY_UUID])
+  COMPANY_UUID   String?
+  employee       employee? @relation(fields: [EMPLOYEE_UUID], references: [EMPLOYEE_UUID])
+  EMPLOYEE_UUID  String?
+  CUSTOMER_NAME  String?
+  CUSTOMER_PHONE String?
+  FEEDBACK       String?
+}
